@@ -4,21 +4,17 @@ using System.IO.Compression;
 
 namespace NbtToBlueprint.Nbt
 {
-    class NbtParser
+    public class NbtParser
     {
-        public NbtCompoundTag ParseNbtData(Stream stream)
+        public NbtCompoundTag ParseFileData(Stream stream)
         {
             using (var byteStream = new MemoryStream())
             {
-                using (var decompressionStream = new System.IO.Compression.GZipStream(stream, CompressionMode.Decompress))
+                using (var decompressionStream = new GZipStream(stream, CompressionMode.Decompress))
                 {
                     var rootTag = (NbtCompoundTag)ParseNamedTag(decompressionStream);
-                    //decompressionStream.CopyTo(byteStream);
                     return rootTag;
                 }
-
-                //var rootTag = (NbtCompoundTag)ParseNamedTag(byteStream);
-
             }
 
         }

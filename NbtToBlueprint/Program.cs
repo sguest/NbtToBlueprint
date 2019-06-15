@@ -10,7 +10,7 @@
             var parser = new Nbt.NbtParser();
 
             using(var inputStream = System.IO.File.OpenRead(inFile)) {
-                var decoded = parser.ParseNbtData(inputStream);
+                var decoded = parser.ParseFileData(inputStream);
             }
         }
     }
