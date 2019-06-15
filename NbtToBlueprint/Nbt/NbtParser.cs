@@ -16,7 +16,6 @@ namespace NbtToBlueprint.Nbt
                     return rootTag;
                 }
             }
-
         }
 
         private byte[] ReadBytes(Stream stream, int length)
@@ -125,6 +124,10 @@ namespace NbtToBlueprint.Nbt
                 case NbtTagType.ByteArray:
                     var length = ReadInt(stream);
                     return new NbtByteArrayTag() { Payload = ReadBytes(stream, length) };
+                case NbtTagType.IntArray:
+                    return ParseIntArray(stream);
+                case NbtTagType.LongArray:
+                    return ParseLongArray(stream);
                 case NbtTagType.List:
                     return ParseListTag(stream);
             }
@@ -146,6 +149,30 @@ namespace NbtToBlueprint.Nbt
                 }
                 tag.ChildTags.Add(childTag.Name, childTag);
             }
+        }
+
+        private NbtIntArrayTag ParseIntArray(Stream stream)
+        {
+            var length = ReadInt(stream);
+            var payload = new int[length];
+
+            for(var i = 0; i < length; i++)
+            {
+                payload[i] = ReadInt(stream);
+            }
+            return new NbtIntArrayTag() { Payload = payload };
+        }
+
+        private NbtLongArrayTag ParseLongArray(Stream stream)
+        {
+            var length = ReadInt(stream);
+            var payload = new long[length];
+
+            for (var i = 0; i < length; i++)
+            {
+                payload[i] = ReadLong(stream);
+            }
+            return new NbtLongArrayTag() { Payload = payload };
         }
 
         private NbtListTag ParseListTag(Stream stream)
