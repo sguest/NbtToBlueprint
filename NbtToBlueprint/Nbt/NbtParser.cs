@@ -179,12 +179,12 @@ namespace NbtToBlueprint.Nbt
         {
             var tag = new NbtListTag();
 
-            var tagType = (NbtTagType)stream.ReadByte();
+            tag.ItemType = (NbtTagType)stream.ReadByte();
             int length = ReadInt(stream);
 
             for(var i = 0; i < length; i++)
             {
-                tag.ChildTags.Add(ParseTagPayload(stream, tagType));
+                tag.ChildTags.Add(ParseTagPayload(stream, tag.ItemType));
             }
 
             return tag;

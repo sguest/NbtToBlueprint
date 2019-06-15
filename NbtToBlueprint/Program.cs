@@ -1,4 +1,7 @@
-﻿namespace NbtToBlueprint
+﻿using NbtToBlueprint.Nbt;
+using NbtToBlueprint.StructureData;
+
+namespace NbtToBlueprint
 {
     class Program
     {
@@ -7,10 +10,10 @@
             var inFile = args[0];
             var outFile = args[1];
 
-            var parser = new Nbt.NbtParser();
+            var deserializer = new NbtDeserializer();
 
             using(var inputStream = System.IO.File.OpenRead(inFile)) {
-                var decoded = parser.ParseFileData(inputStream);
+                var raw = deserializer.DeserializeObject<StructureDataRaw>(inputStream);
             }
         }
     }

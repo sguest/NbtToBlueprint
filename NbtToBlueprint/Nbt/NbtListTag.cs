@@ -6,5 +6,6 @@ namespace NbtToBlueprint.Nbt
     {
         public override NbtTagType TagType => NbtTagType.List;
         public IList<NbtTag> ChildTags { get; set; } = new List<NbtTag>();
+        public NbtTagType ItemType { get; set; }
     }
 }
