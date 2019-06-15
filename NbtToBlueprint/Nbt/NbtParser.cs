@@ -141,13 +141,15 @@ namespace NbtToBlueprint.Nbt
             var tag = new NbtCompoundTag();
 
             NbtTag childTag;
-            do
+            while(true)
             {
                 childTag = ParseNamedTag(stream);
-                tag.ChildTags.Add(childTag);
-            } while (!(childTag is NbtEndTag));
-
-            return tag;
+                if(childTag is NbtEndTag)
+                {
+                    return tag;
+                }
+                tag.ChildTags.Add(childTag.Name, childTag);
+            }
         }
 
         private NbtListTag ParseListTag(Stream stream)

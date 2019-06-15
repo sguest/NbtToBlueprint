@@ -4,3 +4,4 @@ bin/
 Artifacts/
 
 *.csproj.user
+NbtToBlueprint/Properties/launchSettings.json

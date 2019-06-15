@@ -5,6 +5,6 @@ namespace NbtToBlueprint.Nbt
     class NbtCompoundTag : NbtTag
     {
         public override NbtTagType TagType => NbtTagType.Compound;
-        public IList<NbtTag> ChildTags { get; set; } = new List<NbtTag>();
+        public IDictionary<string, NbtTag> ChildTags { get; set; } = new Dictionary<string, NbtTag>();
     }
 }
