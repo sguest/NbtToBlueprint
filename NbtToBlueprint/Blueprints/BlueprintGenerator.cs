@@ -233,7 +233,7 @@ namespace NbtToBlueprint.Blueprints
                 }
             }
 
-            if(cleanName == "grass-path" || cleanName == "grass-block")
+            if(cleanName == "grass-path" || cleanName == "grass-block" || cleanName == "water")
             {
                 return cleanName + "-top";
             }
