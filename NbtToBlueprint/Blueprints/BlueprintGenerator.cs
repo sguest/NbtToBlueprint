@@ -16,7 +16,7 @@ namespace NbtToBlueprint.Blueprints
             var ySize = data.Size[1];
             var zSize = data.Size[2];
 
-            var layers = new char[ySize,xSize,zSize];
+            var layers = new char[xSize, ySize,zSize];
 
             foreach (var block in data.Blocks)
             {
@@ -27,7 +27,7 @@ namespace NbtToBlueprint.Blueprints
                     var transformedName = CleanSpriteName(block.Nbt["final_state"].ToString());
                     stateValue = (palette.FirstOrDefault(p => p.Item2 == transformedName)?.Item1 ?? ' ' as char?).Value;
                 }
-                layers[block.Pos[1], block.Pos[0], block.Pos[2]] = stateValue;
+                layers[block.Pos[0], block.Pos[1], block.Pos[2]] = stateValue;
             }
 
             var blueprint = new StringBuilder();
@@ -47,11 +47,11 @@ namespace NbtToBlueprint.Blueprints
             {
                 blueprint.AppendLine($"|----Layer {y + 1}|");
                 blueprint.AppendLine();
-                for(var x = 0; x < xSize; x++)
+                for(var x = xSize - 1; x >= 0; x--)
                 {
                     for(var z = 0; z < zSize; z++)
                     {
-                        var value = layers[y, x, z];
+                        var value = layers[x, y, z];
                         if(value == default(char))
                         {
                             blueprint.Append(' ');
@@ -130,6 +130,14 @@ namespace NbtToBlueprint.Blueprints
                 }
             }
 
+            if (cleanName.EndsWith("-stairs"))
+            {
+                if(paletteData.Properties["half"] == "top")
+                {
+                    return cleanName + "-rot-180";
+                }
+            }
+
             if(cleanName.EndsWith("-bed"))
             {
                 var part = paletteData.Properties["part"];
@@ -168,12 +176,12 @@ namespace NbtToBlueprint.Blueprints
                         return cleanName + "-rot-90";
                     case "south":
                         return cleanName + "-rot-270";
-                    case "east":
+                    case "west":
                         return cleanName + "-rot-180";
                 }
             }
 
-            if(cleanName == "chest" || cleanName.EndsWith("-stairs"))
+            if(cleanName == "chest")
             {
                 switch (paletteData.Properties["facing"])
                 {
@@ -181,7 +189,7 @@ namespace NbtToBlueprint.Blueprints
                         return cleanName + "-rot-270";
                     case "south":
                         return cleanName + "-rot-90";
-                    case "east":
+                    case "west":
                         return cleanName + "-rot-180";
                 }
             }
