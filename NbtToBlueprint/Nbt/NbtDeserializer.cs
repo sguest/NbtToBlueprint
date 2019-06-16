@@ -89,6 +89,11 @@ namespace NbtToBlueprint.Nbt
             }
             else if (tag is NbtListTag listTag)
             {
+                if(listTag.ItemType == NbtTagType.End)
+                {
+                    return new List<object>();
+                }
+
                 foreach (Type interfaceType in targetType.GetInterfaces())
                 {
                     Type itemType = GetCollectionGenericType(targetType);

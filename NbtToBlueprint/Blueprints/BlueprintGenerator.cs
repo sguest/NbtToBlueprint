@@ -24,8 +24,29 @@ namespace NbtToBlueprint.Blueprints
                 var blockName = palette[block.State].Item2;
                 if(blockName == "jigsaw")
                 {
-                    var transformedName = CleanSpriteName(block.Nbt["final_state"].ToString());
-                    stateValue = (palette.FirstOrDefault(p => p.Item2 == transformedName)?.Item1 ?? ' ' as char?).Value;
+                    var transformData = block.Nbt["final_state"].ToString().Split('[');
+                    var paletteData = new StructureDataRawPalette() { Name = transformData[0], Properties = new Dictionary<string, string>() };
+                    if(transformData.Length > 1)
+                    {
+                        var nbtData = transformData[1].TrimEnd(']');
+
+                        foreach (var dataItem in nbtData.Split(','))
+                        {
+                            var dataParts = dataItem.Split('=');
+                            paletteData.Properties.Add(dataParts[0], dataParts[1]);
+                        }
+                    }
+
+                    var spriteName = GetSpriteName(paletteData);
+                    var paletteItem = palette.Find(m => m.Item2 == spriteName);
+                    if(paletteItem == null)
+                    {
+                        stateValue = AddPaletteItem(palette, paletteData);
+                    }
+                    else
+                    {
+                        stateValue = paletteItem.Item1;
+                    }
                 }
                 layers[block.Pos[0], block.Pos[1], block.Pos[2]] = stateValue;
             }
@@ -78,35 +99,45 @@ namespace NbtToBlueprint.Blueprints
 
             foreach (var item in data.Palette)
             {
-                var name = CleanSpriteName(item.Name);
-                if(name == "air")
-                {
-                    palette.Add(new Tuple<char, string>(default(char), ""));
-                    continue;
-                }
-
-                var charIndex = 0;
-                while (charIndex < name.Length && (palette.Any(x => x.Item1 == name.ToUpperInvariant()[charIndex]) || name[charIndex] == '-'))
-                {
-                    charIndex++;
-                }
-
-                if(charIndex < name.Length)
-                {
-                    palette.Add(new Tuple<char, string>(name.ToUpperInvariant()[charIndex], GetSpriteName(item)));
-                    continue;
-                }
-
-                charIndex = 0;
-                while (charIndex < name.Length && (palette.Any(x => x.Item1 == name.ToLowerInvariant()[charIndex] || name[charIndex] == '-')))
-                {
-                    charIndex++;
-                }
-
-                palette.Add(new Tuple<char, string>(name[charIndex], GetSpriteName(item)));
+                AddPaletteItem(palette, item);
             }
 
             return palette;
+        }
+
+        private char AddPaletteItem(List<Tuple<char, string>> palette, StructureDataRawPalette item)
+        {
+            char value;
+            var name = CleanSpriteName(item.Name);
+            if (name == "air" || name == "structure-void")
+            {
+                value = default(char);
+                palette.Add(new Tuple<char, string>(value, ""));
+                return value;
+            }
+
+            var charIndex = 0;
+            while (charIndex < name.Length && (palette.Any(x => x.Item1 == name.ToUpperInvariant()[charIndex]) || name[charIndex] == '-'))
+            {
+                charIndex++;
+            }
+
+            if (charIndex < name.Length)
+            {
+                value = name.ToUpperInvariant()[charIndex];
+                palette.Add(new Tuple<char, string>(value, GetSpriteName(item)));
+                return value;
+            }
+
+            charIndex = 0;
+            while (charIndex < name.Length && (palette.Any(x => x.Item1 == name.ToLowerInvariant()[charIndex] || name[charIndex] == '-')))
+            {
+                charIndex++;
+            }
+
+            value = name[charIndex];
+            palette.Add(new Tuple<char, string>(value, GetSpriteName(item)));
+            return value;
         }
 
         private string GetSpriteName(StructureDataRawPalette paletteData)
