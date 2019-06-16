@@ -20,5 +20,6 @@ namespace NbtToBlueprint.StructureData
     {
         public int State { get; set; }
         public List<int> Pos { get; set; }
+        public Dictionary<string, object> Nbt { get; set; }
     }
 }
