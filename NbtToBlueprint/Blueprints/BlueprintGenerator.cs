@@ -144,7 +144,7 @@ namespace NbtToBlueprint.Blueprints
         {
             var cleanName = CleanSpriteName(paletteData.Name);
 
-            if(cleanName.EndsWith("-log") && paletteData.Properties["axis"] == "y")
+            if(cleanName.EndsWith("-log") && (!paletteData.Properties.ContainsKey("axis") ||  paletteData.Properties["axis"] == "y"))
             {
                 return cleanName + "-top";
             }
