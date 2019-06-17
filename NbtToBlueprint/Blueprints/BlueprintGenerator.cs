@@ -18,10 +18,12 @@ namespace NbtToBlueprint.Blueprints
 
             var layers = new char[xSize, ySize,zSize];
 
+            var itemCounts = new SortedDictionary<string, int[]>();
+
             foreach (var block in data.Blocks)
             {
-                var stateValue = palette[block.State].Item1;
-                var blockName = palette[block.State].Item2;
+                var paletteItem = palette[block.State];
+                var blockName =paletteItem.BlockName;
                 if(blockName == "jigsaw")
                 {
                     var transformData = block.Nbt["final_state"].ToString().Split('[');
@@ -38,17 +40,23 @@ namespace NbtToBlueprint.Blueprints
                     }
 
                     var spriteName = GetSpriteName(paletteData);
-                    var paletteItem = palette.Find(m => m.Item2 == spriteName);
+                    paletteItem = palette.Find(m => m.SpriteName == spriteName);
                     if(paletteItem == null)
                     {
-                        stateValue = AddPaletteItem(palette, paletteData);
-                    }
-                    else
-                    {
-                        stateValue = paletteItem.Item1;
+                        paletteItem = GetPaletteItem(palette, paletteData);
                     }
                 }
-                layers[block.Pos[0], block.Pos[1], block.Pos[2]] = stateValue;
+                layers[block.Pos[0], block.Pos[1], block.Pos[2]] = paletteItem.BlueprintValue;
+
+                if(paletteItem.CountForMaterials)
+                {
+                    if (!itemCounts.ContainsKey(paletteItem.BlockName))
+                    {
+                        itemCounts.Add(paletteItem.BlockName, new int[ySize]);
+                    }
+
+                    itemCounts[paletteItem.BlockName][block.Pos[1]]++;
+                }
             }
 
             var blueprint = new StringBuilder();
@@ -57,9 +65,9 @@ namespace NbtToBlueprint.Blueprints
 
             foreach (var item in palette)
             {
-                if(item.Item1 != default(char))
+                if(item.BlueprintValue != default(char))
                 {
-                    blueprint.AppendLine($"|{item.Item1}={item.Item2}");
+                    blueprint.AppendLine($"|{item.BlueprintValue}={item.SpriteName}");
                 }
             }
             blueprint.AppendLine();
@@ -90,54 +98,103 @@ namespace NbtToBlueprint.Blueprints
             blueprint.AppendLine();
             blueprint.AppendLine("}}");
 
+            blueprint.AppendLine();
+            blueprint.AppendLine();
+            blueprint.AppendLine("{| class=\"wikitable\"");
+            blueprint.AppendLine("|-");
+            blueprint.Append("!Name");
+            for(var y = 0; y < ySize; y++)
+            {
+                blueprint.Append($" !!Layer {y + 1}");
+            }
+            blueprint.AppendLine(" !!Total");
+
+            foreach (var item in itemCounts)
+            {
+                blueprint.AppendLine("|-");
+                var formattedName = System.Text.RegularExpressions.Regex.Replace(item.Key, "(^|-)([a-z])",
+                    s => {
+                        var result = "";
+                        if(s.Groups[1].Value == "-")
+                        {
+                            result += " ";
+                        }
+                        result += s.Groups[2].Value.ToUpperInvariant();
+                        return result;
+                    });
+
+                blueprint.Append("| {{BlockSprite|").Append(item.Key).Append("|link=").Append(formattedName).Append("|text=").Append(formattedName).Append("}}     ");
+
+                for(var y = 0; y < ySize; y++)
+                {
+                    blueprint.Append("|| ");
+                    if (item.Value[y] == 0)
+                    {
+                        blueprint.Append("-");
+                    }
+                    else
+                    {
+                        blueprint.Append(item.Value[y]);
+                    }
+                    blueprint.Append(" ");
+                }
+                blueprint.Append("|| ").AppendLine(item.Value.Sum().ToString());
+            }
+
+            blueprint.AppendLine("|}");
+
             return blueprint.ToString();
         }
 
-        private List<Tuple<char, string>> BuildPalette(StructureDataRaw data)
+        private List<PaletteItem> BuildPalette(StructureDataRaw data)
         {
-            var palette = new List<Tuple<char, string>>();
+            var palette = new List<PaletteItem>();
 
             foreach (var item in data.Palette)
             {
-                AddPaletteItem(palette, item);
+                palette.Add(GetPaletteItem(palette, item));
             }
 
             return palette;
         }
 
-        private char AddPaletteItem(List<Tuple<char, string>> palette, StructureDataRawPalette item)
+        private PaletteItem GetPaletteItem(List<PaletteItem> palette, StructureDataRawPalette item)
         {
-            char value;
             var name = CleanSpriteName(item.Name);
             if (name == "air" || name == "structure-void")
             {
-                value = default(char);
-                palette.Add(new Tuple<char, string>(value, ""));
-                return value;
+                return new PaletteItem() { BlockName = "", SpriteName = "", BlueprintValue = default(char), CountForMaterials = false };
             }
 
-            var charIndex = 0;
-            while (charIndex < name.Length && (palette.Any(x => x.Item1 == name.ToUpperInvariant()[charIndex]) || name[charIndex] == '-'))
+            var validChar = findPaletteChar(palette, name.ToUpperInvariant());
+
+            if(validChar == default(char))
+            {
+                validChar = findPaletteChar(palette, name);
+            }
+
+            if(validChar == default(char))
+            {
+                validChar = findPaletteChar(palette, "!@#$%^&*()-_=+");
+            }
+
+            return new PaletteItem() { BlockName = name, SpriteName = GetSpriteName(item), BlueprintValue = validChar, CountForMaterials = ShouldCountMaterials(item) };
+        }
+
+        private char findPaletteChar(List<PaletteItem> palette, string name)
+        {
+            int charIndex = 0;
+            while(charIndex < name.Length && palette.Any(x => x.BlueprintValue == name[charIndex] || name[charIndex] == '-'))
             {
                 charIndex++;
             }
 
-            if (charIndex < name.Length)
+            if(charIndex < name.Length)
             {
-                value = name.ToUpperInvariant()[charIndex];
-                palette.Add(new Tuple<char, string>(value, GetSpriteName(item)));
-                return value;
+                return name[charIndex];
             }
 
-            charIndex = 0;
-            while (charIndex < name.Length && (palette.Any(x => x.Item1 == name.ToLowerInvariant()[charIndex] || name[charIndex] == '-')))
-            {
-                charIndex++;
-            }
-
-            value = name[charIndex];
-            palette.Add(new Tuple<char, string>(value, GetSpriteName(item)));
-            return value;
+            return default(char);
         }
 
         private string GetSpriteName(StructureDataRawPalette paletteData)
@@ -248,6 +305,23 @@ namespace NbtToBlueprint.Blueprints
             }
 
             return name.ToLowerInvariant().Replace("_", "-");
+        }
+
+        private bool ShouldCountMaterials(StructureDataRawPalette paletteData)
+        {
+            var cleanName = CleanSpriteName(paletteData.Name);
+
+            if(cleanName.EndsWith("-bed"))
+            {
+                return (paletteData.Properties["part"] == "head");
+            }
+
+            if(cleanName.EndsWith("-door"))
+            {
+                return (paletteData.Properties["half"] == "lower");
+            }
+
+            return true;
         }
     }
 }
