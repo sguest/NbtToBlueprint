@@ -44,6 +44,7 @@ namespace NbtToBlueprint.Blueprints
                     if(paletteItem == null)
                     {
                         paletteItem = GetPaletteItem(palette, paletteData);
+                        palette.Add(paletteItem);
                     }
                 }
                 layers[block.Pos[0], block.Pos[1], block.Pos[2]] = paletteItem.BlueprintValue;
@@ -175,7 +176,7 @@ namespace NbtToBlueprint.Blueprints
 
             if(validChar == default(char))
             {
-                validChar = findPaletteChar(palette, "!@#$%^&*()-_=+");
+                validChar = findPaletteChar(palette, "!@#$%^&*()-_+<>");
             }
 
             return new PaletteItem() { BlockName = name, SpriteName = GetSpriteName(item), BlueprintValue = validChar, CountForMaterials = ShouldCountMaterials(item) };
@@ -277,7 +278,7 @@ namespace NbtToBlueprint.Blueprints
                         return cleanName + "-rot-270";
                     case "south":
                         return cleanName + "-rot-90";
-                    case "west":
+                    case "east":
                         return cleanName + "-rot-180";
                 }
             }
