@@ -1,5 +1,4 @@
 ﻿using NbtToBlueprint.StructureData;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -179,7 +178,7 @@ namespace NbtToBlueprint.Blueprints
                 validChar = findPaletteChar(palette, "!@#$%^&*()-_+<>");
             }
 
-            return new PaletteItem() { BlockName = name, SpriteName = GetSpriteName(item), BlueprintValue = validChar, CountForMaterials = ShouldCountMaterials(item) };
+            return new PaletteItem() { BlockName = GetBlockName(item), SpriteName = GetSpriteName(item), BlueprintValue = validChar, CountForMaterials = ShouldCountMaterials(item) };
         }
 
         private char findPaletteChar(List<PaletteItem> palette, string name)
@@ -196,6 +195,18 @@ namespace NbtToBlueprint.Blueprints
             }
 
             return default(char);
+        }
+
+        private string GetBlockName(StructureDataRawPalette paletteData)
+        {
+            var cleanName = CleanSpriteName(paletteData.Name);
+
+            if(cleanName == "wall-torch")
+            {
+                return "torch";
+            }
+
+            return cleanName;
         }
 
         private string GetSpriteName(StructureDataRawPalette paletteData)
