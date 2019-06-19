@@ -72,10 +72,14 @@ namespace NbtToBlueprint.Blueprints
             }
             blueprint.AppendLine();
 
+            var lastLayer = "";
+            var lastLayerStart = 0;
+            var lastLayerEnd = 0;
+            var emptyLayers = new bool[ySize];
+
             for(var y = 0; y < ySize; y++)
             {
-                blueprint.AppendLine($"|----Layer {y + 1}|");
-                blueprint.AppendLine();
+                var currentLayer = new StringBuilder();
                 for(var x = xSize - 1; x >= 0; x--)
                 {
                     for(var z = 0; z < zSize; z++)
@@ -83,17 +87,41 @@ namespace NbtToBlueprint.Blueprints
                         var value = layers[x, y, z];
                         if(value == default(char))
                         {
-                            blueprint.Append(' ');
+                            currentLayer.Append(' ');
                         }
                         else
                         {
-                            blueprint.Append(value);
+                            currentLayer.Append(value);
                         }
                     }
-                    blueprint.AppendLine();
+                    currentLayer.AppendLine();
                 }
-                blueprint.AppendLine();
+                currentLayer.AppendLine();
+
+                var currentLayerString = currentLayer.ToString();
+                if(string.IsNullOrWhiteSpace(currentLayerString))
+                {
+                    emptyLayers[y] = true;
+                }
+                else
+                {
+                    if(currentLayerString == lastLayer)
+                    {
+                        lastLayerEnd = y + 1;
+                    }
+                    else
+                    {
+                        if(!string.IsNullOrWhiteSpace(lastLayer))
+                        {
+                            WriteLayer(blueprint, lastLayer, lastLayerStart, lastLayerEnd);
+                        }
+                        lastLayer = currentLayerString;
+                        lastLayerStart = y + 1;
+                        lastLayerEnd = y + 1;
+                    }
+                }
             }
+            WriteLayer(blueprint, lastLayer, lastLayerStart, lastLayerEnd);
 
             blueprint.AppendLine();
             blueprint.AppendLine("}}");
@@ -127,16 +155,19 @@ namespace NbtToBlueprint.Blueprints
 
                 for(var y = 0; y < ySize; y++)
                 {
-                    blueprint.Append("|| ");
-                    if (item.Value[y] == 0)
+                    if (!emptyLayers[y])
                     {
-                        blueprint.Append("-");
+                        blueprint.Append("|| ");
+                        if (item.Value[y] == 0)
+                        {
+                            blueprint.Append("-");
+                        }
+                        else
+                        {
+                            blueprint.Append(item.Value[y]);
+                        }
+                        blueprint.Append(" ");
                     }
-                    else
-                    {
-                        blueprint.Append(item.Value[y]);
-                    }
-                    blueprint.Append(" ");
                 }
                 blueprint.Append("|| ").AppendLine(item.Value.Sum().ToString());
             }
@@ -144,6 +175,18 @@ namespace NbtToBlueprint.Blueprints
             blueprint.AppendLine("|}");
 
             return blueprint.ToString();
+        }
+
+        private void WriteLayer(StringBuilder builder, string layerContent, int start, int end)
+        {
+            var layerNumString = start.ToString();
+            if(start != end)
+            {
+                layerNumString += "-" + end;
+            }
+            builder.AppendLine($"|----Layer {layerNumString}|");
+            builder.AppendLine();
+            builder.Append(layerContent);
         }
 
         private List<PaletteItem> BuildPalette(StructureDataRaw data)
