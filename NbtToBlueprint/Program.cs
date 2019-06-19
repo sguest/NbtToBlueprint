@@ -10,7 +10,16 @@ namespace NbtToBlueprint
         {
             var inFile = args[0];
             var outFile = args[1];
-            var name = args[2];
+            var name = System.Text.RegularExpressions.Regex.Replace(System.IO.Path.GetFileNameWithoutExtension(inFile), "(^|_)([a-z0-9])",
+                    s => {
+                        var result = "";
+                        if (s.Groups[1].Value == "_")
+                        {
+                            result += " ";
+                        }
+                        result += s.Groups[2].Value.ToUpperInvariant();
+                        return result;
+                    });
 
             var deserializer = new NbtDeserializer();
             var generator = new BlueprintGenerator();
