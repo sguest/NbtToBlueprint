@@ -328,7 +328,7 @@ namespace NbtToBlueprint.Blueprints
                 return (paletteData.Properties["part"] == "head");
             }
 
-            if(cleanName.EndsWith("-door"))
+            if(cleanName.EndsWith("-door") || cleanName == "tall-grass")
             {
                 return (paletteData.Properties["half"] == "lower");
             }
