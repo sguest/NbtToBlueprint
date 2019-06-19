@@ -275,7 +275,7 @@ namespace NbtToBlueprint.Blueprints
 
             if (cleanName.EndsWith("-stairs"))
             {
-                if(paletteData.Properties["half"] == "top")
+                if(paletteData.Properties.ContainsKey("half") && paletteData.Properties["half"] == "top")
                 {
                     return cleanName + "-rot-180";
                 }
