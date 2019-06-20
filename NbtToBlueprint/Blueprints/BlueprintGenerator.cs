@@ -128,7 +128,7 @@ namespace NbtToBlueprint.Blueprints
 
             blueprint.AppendLine();
             blueprint.AppendLine();
-            blueprint.AppendLine("{| class=\"wikitable\"");
+            blueprint.AppendLine("{| class=\"wikitable sortable mw-collapsible\"");
             blueprint.AppendLine("|-");
             blueprint.Append("!Name");
             for(var y = 0; y < ySize; y++)
