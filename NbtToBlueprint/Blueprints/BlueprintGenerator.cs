@@ -133,7 +133,10 @@ namespace NbtToBlueprint.Blueprints
             blueprint.Append("!Name");
             for(var y = 0; y < ySize; y++)
             {
-                blueprint.Append($" !!Layer {y + 1}");
+                if (!emptyLayers[y])
+                {
+                    blueprint.Append($" !!Layer {y + 1}");
+                }
             }
             blueprint.AppendLine(" !!Total");
 
