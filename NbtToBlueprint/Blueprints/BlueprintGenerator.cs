@@ -48,14 +48,14 @@ namespace NbtToBlueprint.Blueprints
                 }
                 layers[block.Pos[0], block.Pos[1], block.Pos[2]] = paletteItem.BlueprintValue;
 
-                if(paletteItem.CountForMaterials)
+                if(paletteItem.MaterialCount > 0)
                 {
                     if (!itemCounts.ContainsKey(paletteItem.BlockName))
                     {
                         itemCounts.Add(paletteItem.BlockName, new int[ySize]);
                     }
 
-                    itemCounts[paletteItem.BlockName][block.Pos[1]]++;
+                    itemCounts[paletteItem.BlockName][block.Pos[1]] += paletteItem.MaterialCount;
                 }
             }
 
@@ -209,25 +209,25 @@ namespace NbtToBlueprint.Blueprints
             var name = CleanSpriteName(item.Name);
             if (name == "air" || name == "structure-void")
             {
-                return new PaletteItem() { BlockName = "", SpriteName = "", BlueprintValue = default(char), CountForMaterials = false };
+                return new PaletteItem() { BlockName = "", SpriteName = "", BlueprintValue = default(char), MaterialCount = 0 };
             }
 
-            var validChar = findPaletteChar(palette, name.ToUpperInvariant());
+            var validChar = FindPaletteChar(palette, name.ToUpperInvariant());
 
             if(validChar == default(char))
             {
-                validChar = findPaletteChar(palette, name);
+                validChar = FindPaletteChar(palette, name);
             }
 
             if(validChar == default(char))
             {
-                validChar = findPaletteChar(palette, "!@#$%^&*()-_+<>");
+                validChar = FindPaletteChar(palette, "!@#$%^&*()-_+<>");
             }
 
-            return new PaletteItem() { BlockName = GetBlockName(item), SpriteName = GetSpriteName(item), BlueprintValue = validChar, CountForMaterials = ShouldCountMaterials(item) };
+            return new PaletteItem() { BlockName = GetBlockName(item), SpriteName = GetSpriteName(item), BlueprintValue = validChar, MaterialCount = GetMaterialCount(item) };
         }
 
-        private char findPaletteChar(List<PaletteItem> palette, string name)
+        private char FindPaletteChar(List<PaletteItem> palette, string name)
         {
             int charIndex = 0;
             while(charIndex < name.Length && palette.Any(x => x.BlueprintValue == name[charIndex] || name[charIndex] == '-'))
@@ -365,21 +365,26 @@ namespace NbtToBlueprint.Blueprints
             return name.ToLowerInvariant().Replace("_", "-");
         }
 
-        private bool ShouldCountMaterials(StructureDataRawPalette paletteData)
+        private int GetMaterialCount(StructureDataRawPalette paletteData)
         {
             var cleanName = CleanSpriteName(paletteData.Name);
 
             if(cleanName.EndsWith("-bed"))
             {
-                return (paletteData.Properties["part"] == "head");
+                return paletteData.Properties["part"] == "head" ? 1 : 0;
             }
 
             if(cleanName.EndsWith("-door") || cleanName == "tall-grass")
             {
-                return (paletteData.Properties["half"] == "lower");
+                return paletteData.Properties["half"] == "lower" ? 1 : 0;
             }
 
-            return true;
+            if(cleanName.EndsWith("-slab"))
+            {
+                return paletteData.Properties["type"] == "double" ? 2 : 1;
+            }
+
+            return 1;
         }
     }
 }
