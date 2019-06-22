@@ -223,33 +223,19 @@ namespace NbtToBlueprint.Blueprints
                 return new PaletteItem() { BlockName = "", SpriteName = "", BlueprintValue = default(char), MaterialCount = 0 };
             }
 
-            char validChar = default(char);
+            char blueprintChar = default(char);
 
             if (!dataItem.HideBlueprint)
             {
-                validChar = FindPaletteChar(palette, name.ToUpperInvariant());
-
-                if (validChar == default(char))
-                {
-                    validChar = FindPaletteChar(palette, name);
-                }
-
-                if (validChar == default(char))
-                {
-                    validChar = FindPaletteChar(palette, "!@#$%^&*()-_+<>");
-                }
-
-                if (validChar == default(char))
-                {
-                    throw new Exception($"Could not find valid palette char for name {name}");
-                }
+                var options = $"{name.ToUpperInvariant().Replace("-", "")}{name.Replace("-", "")}!@#$%^&*()-_+<>";
+                blueprintChar = FindPaletteChar(palette, options);
             }
 
             var paletteItem = new PaletteItem()
             {
                 BlockName = name,
                 SpriteName = name,
-                BlueprintValue = validChar,
+                BlueprintValue = blueprintChar,
                 MaterialCount = 1
             };
 
@@ -303,7 +289,7 @@ namespace NbtToBlueprint.Blueprints
                 return name[charIndex];
             }
 
-            return default(char);
+            throw new Exception($"Could not find valid palette char for name {name}");
         }
 
         private string CleanSpriteName(string name)
