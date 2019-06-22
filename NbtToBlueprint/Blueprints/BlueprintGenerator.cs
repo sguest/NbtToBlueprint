@@ -29,6 +29,7 @@ namespace NbtToBlueprint.Blueprints
             var zSize = data.Size[2];
 
             var layers = new char[xSize, ySize,zSize];
+            var emptyLayers = new bool[ySize];
 
             var itemCounts = new SortedDictionary<string, int[]>();
 
@@ -53,13 +54,23 @@ namespace NbtToBlueprint.Blueprints
                 }
             }
 
+            var builder = new StringBuilder();
+            builder.AppendLine(WriteBlueprint(xSize, ySize, zSize, name, layers, emptyLayers));
+            builder.AppendLine();
+            builder.AppendLine(WriteMaterialTable(ySize, emptyLayers, itemCounts));
+
+            return builder.ToString();
+        }
+
+        private string WriteBlueprint(int xSize, int ySize, int zSize, string name, char[,,] layers, bool[] emptyLayers)
+        {
             var blueprint = new StringBuilder();
 
             blueprint.AppendLine("{{layered blueprint|name=").Append(name).Append("|default=Layer 1");
 
             foreach (var item in Palette)
             {
-                if(item.BlueprintValue != default(char))
+                if (item.BlueprintValue != default(char))
                 {
                     blueprint.AppendLine($"|{item.BlueprintValue}={item.SpriteName}");
                 }
@@ -69,17 +80,16 @@ namespace NbtToBlueprint.Blueprints
             var lastLayer = "";
             var lastLayerStart = 0;
             var lastLayerEnd = 0;
-            var emptyLayers = new bool[ySize];
 
-            for(var y = 0; y < ySize; y++)
+            for (var y = 0; y < ySize; y++)
             {
                 var currentLayer = new StringBuilder();
-                for(var x = xSize - 1; x >= 0; x--)
+                for (var x = xSize - 1; x >= 0; x--)
                 {
-                    for(var z = 0; z < zSize; z++)
+                    for (var z = 0; z < zSize; z++)
                     {
                         var value = layers[x, y, z];
-                        if(value == default(char))
+                        if (value == default(char))
                         {
                             currentLayer.Append(' ');
                         }
@@ -93,19 +103,19 @@ namespace NbtToBlueprint.Blueprints
                 currentLayer.AppendLine();
 
                 var currentLayerString = currentLayer.ToString();
-                if(string.IsNullOrWhiteSpace(currentLayerString))
+                if (string.IsNullOrWhiteSpace(currentLayerString))
                 {
                     emptyLayers[y] = true;
                 }
                 else
                 {
-                    if(currentLayerString == lastLayer)
+                    if (currentLayerString == lastLayer)
                     {
                         lastLayerEnd = y + 1;
                     }
                     else
                     {
-                        if(!string.IsNullOrWhiteSpace(lastLayer))
+                        if (!string.IsNullOrWhiteSpace(lastLayer))
                         {
                             WriteLayer(blueprint, lastLayer, lastLayerStart, lastLayerEnd);
                         }
@@ -120,27 +130,31 @@ namespace NbtToBlueprint.Blueprints
             blueprint.AppendLine();
             blueprint.AppendLine("}}");
 
-            blueprint.AppendLine();
-            blueprint.AppendLine();
-            blueprint.AppendLine("{| class=\"wikitable sortable mw-collapsible\"");
-            blueprint.AppendLine("|-");
-            blueprint.Append("!Name");
-            for(var y = 0; y < ySize; y++)
+            return blueprint.ToString();
+        }
+
+        private string WriteMaterialTable(int numLayers, bool[] emptyLayers, IDictionary<string, int[]> itemCounts)
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine("{| class=\"wikitable sortable mw-collapsible\"");
+            builder.AppendLine("|-");
+            builder.Append("!Name");
+            for (var y = 0; y < numLayers; y++)
             {
                 if (!emptyLayers[y])
                 {
-                    blueprint.Append($" !!Layer {y + 1}");
+                    builder.Append($" !!Layer {y + 1}");
                 }
             }
-            blueprint.AppendLine(" !!Total");
+            builder.AppendLine(" !!Total");
 
             foreach (var item in itemCounts)
             {
-                blueprint.AppendLine("|-");
+                builder.AppendLine("|-");
                 var formattedName = Regex.Replace(item.Key, "(^|-)([a-z])",
                     s => {
                         var result = "";
-                        if(s.Groups[1].Value == "-")
+                        if (s.Groups[1].Value == "-")
                         {
                             result += " ";
                         }
@@ -148,30 +162,29 @@ namespace NbtToBlueprint.Blueprints
                         return result;
                     });
 
-                blueprint.Append("| {{BlockSprite|").Append(item.Key).Append("|link=").Append(formattedName).Append("|text=").Append(formattedName).Append("}}     ");
+                builder.Append("| {{BlockSprite|").Append(item.Key).Append("|link=").Append(formattedName).Append("|text=").Append(formattedName).Append("}}     ");
 
-                for(var y = 0; y < ySize; y++)
+                for (var y = 0; y < numLayers; y++)
                 {
                     if (!emptyLayers[y])
                     {
-                        blueprint.Append("|| ");
+                        builder.Append("|| ");
                         if (item.Value[y] == 0)
                         {
-                            blueprint.Append("-");
+                            builder.Append("-");
                         }
                         else
                         {
-                            blueprint.Append(item.Value[y]);
+                            builder.Append(item.Value[y]);
                         }
-                        blueprint.Append(" ");
+                        builder.Append(" ");
                     }
                 }
-                blueprint.Append("|| ").AppendLine(item.Value.Sum().ToString());
+                builder.Append("|| ").AppendLine(item.Value.Sum().ToString());
             }
 
-            blueprint.AppendLine("|}");
-
-            return blueprint.ToString();
+            builder.AppendLine("|}");
+            return builder.ToString();
         }
 
         private PaletteItem TransformJigsaw(StructureDataRawBlock block)
@@ -190,7 +203,7 @@ namespace NbtToBlueprint.Blueprints
             }
 
             var paletteItem = GetPaletteItem(paletteData);
-            var matchingItem = paletteItem = Palette.Find(m => m.SpriteName == paletteItem.SpriteName);
+            var matchingItem = Palette.Find(m => m.SpriteName == paletteItem.SpriteName);
             if (matchingItem == null)
             {
                 Palette.Add(paletteItem);
