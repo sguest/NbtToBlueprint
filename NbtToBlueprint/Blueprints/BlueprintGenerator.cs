@@ -16,11 +16,13 @@ namespace NbtToBlueprint.Blueprints
             this.BlockData = JsonConvert.DeserializeObject<BlockData>(blockDataString);
         }
 
-        private BlockData BlockData { get; set; }
+        private BlockData BlockData;
+
+        private List<PaletteItem> Palette;
 
         public string GenerateBlueprint(StructureDataRaw data, string name)
         {
-            var palette = BuildPalette(data);
+            BuildPalette(data);
 
             var xSize = data.Size[0];
             var ySize = data.Size[1];
@@ -32,29 +34,11 @@ namespace NbtToBlueprint.Blueprints
 
             foreach (var block in data.Blocks)
             {
-                var paletteItem = palette[block.State];
+                var paletteItem = Palette[block.State];
                 var blockName = paletteItem.BlockName;
                 if(blockName == "jigsaw")
                 {
-                    var transformData = block.Nbt["final_state"].ToString().Split('[');
-                    var paletteData = new StructureDataRawPalette() { Name = transformData[0], Properties = new Dictionary<string, string>() };
-                    if(transformData.Length > 1)
-                    {
-                        var nbtData = transformData[1].TrimEnd(']');
-
-                        foreach (var dataItem in nbtData.Split(','))
-                        {
-                            var dataParts = dataItem.Split('=');
-                            paletteData.Properties.Add(dataParts[0], dataParts[1]);
-                        }
-                    }
-
-                    paletteItem = GetPaletteItem(palette, paletteData);
-                    var matchingItem = paletteItem = palette.Find(m => m.SpriteName == paletteItem.SpriteName);
-                    if(matchingItem == null)
-                    {
-                        palette.Add(paletteItem);
-                    }
+                    paletteItem = TransformJigsaw(block);
                 }
                 layers[block.Pos[0], block.Pos[1], block.Pos[2]] = paletteItem.BlueprintValue;
 
@@ -73,7 +57,7 @@ namespace NbtToBlueprint.Blueprints
 
             blueprint.AppendLine("{{layered blueprint|name=").Append(name).Append("|default=Layer 1");
 
-            foreach (var item in palette)
+            foreach (var item in Palette)
             {
                 if(item.BlueprintValue != default(char))
                 {
@@ -190,6 +174,35 @@ namespace NbtToBlueprint.Blueprints
             return blueprint.ToString();
         }
 
+        private PaletteItem TransformJigsaw(StructureDataRawBlock block)
+        {
+            var transformData = block.Nbt["final_state"].ToString().Split('[');
+            var paletteData = new StructureDataRawPalette() { Name = transformData[0], Properties = new Dictionary<string, string>() };
+            if (transformData.Length > 1)
+            {
+                var nbtData = transformData[1].TrimEnd(']');
+
+                foreach (var dataItem in nbtData.Split(','))
+                {
+                    var dataParts = dataItem.Split('=');
+                    paletteData.Properties.Add(dataParts[0], dataParts[1]);
+                }
+            }
+
+            var paletteItem = GetPaletteItem(paletteData);
+            var matchingItem = paletteItem = Palette.Find(m => m.SpriteName == paletteItem.SpriteName);
+            if (matchingItem == null)
+            {
+                Palette.Add(paletteItem);
+            }
+            else
+            {
+                paletteItem = matchingItem;
+            }
+
+            return paletteItem;
+        }
+
         private void WriteLayer(StringBuilder builder, string layerContent, int start, int end)
         {
             var layerNumString = start.ToString();
@@ -202,19 +215,17 @@ namespace NbtToBlueprint.Blueprints
             builder.Append(layerContent);
         }
 
-        private List<PaletteItem> BuildPalette(StructureDataRaw data)
+        private void BuildPalette(StructureDataRaw data)
         {
-            var palette = new List<PaletteItem>();
+            Palette = new List<PaletteItem>();
 
             foreach (var item in data.Palette)
             {
-                palette.Add(GetPaletteItem(palette, item));
+                Palette.Add(GetPaletteItem(item));
             }
-
-            return palette;
         }
 
-        private PaletteItem GetPaletteItem(List<PaletteItem> palette, StructureDataRawPalette item)
+        private PaletteItem GetPaletteItem(StructureDataRawPalette item)
         {
             var name = CleanSpriteName(item.Name);
             var dataItem = BlockData.Blocks.FirstOrDefault(i => Regex.IsMatch(name, i.Name)) ?? new BlockDataItem();
@@ -228,7 +239,7 @@ namespace NbtToBlueprint.Blueprints
             if (!dataItem.HideBlueprint)
             {
                 var options = $"{name.ToUpperInvariant().Replace("-", "")}{name.Replace("-", "")}!@#$%^&*()-_+<>";
-                blueprintChar = FindPaletteChar(palette, options);
+                blueprintChar = FindPaletteChar(options);
             }
 
             var paletteItem = new PaletteItem()
@@ -276,10 +287,10 @@ namespace NbtToBlueprint.Blueprints
             return paletteItem;
         }
 
-        private char FindPaletteChar(List<PaletteItem> palette, string name)
+        private char FindPaletteChar(string name)
         {
             int charIndex = 0;
-            while(charIndex < name.Length && palette.Any(x => x.BlueprintValue == name[charIndex] || name[charIndex] == '-'))
+            while(charIndex < name.Length && Palette.Any(x => x.BlueprintValue == name[charIndex] || name[charIndex] == '-'))
             {
                 charIndex++;
             }
