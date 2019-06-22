@@ -1,12 +1,23 @@
 ﻿using NbtToBlueprint.StructureData;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace NbtToBlueprint.Blueprints
 {
     public class BlueprintGenerator
     {
+        public BlueprintGenerator()
+        {
+            var blockDataString = System.IO.File.ReadAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Config\BlockData.json"));
+            this.BlockData = JsonConvert.DeserializeObject<BlockData>(blockDataString);
+        }
+
+        private BlockData BlockData { get; set; }
+
         public string GenerateBlueprint(StructureDataRaw data, string name)
         {
             var palette = BuildPalette(data);
@@ -22,7 +33,7 @@ namespace NbtToBlueprint.Blueprints
             foreach (var block in data.Blocks)
             {
                 var paletteItem = palette[block.State];
-                var blockName =paletteItem.BlockName;
+                var blockName = paletteItem.BlockName;
                 if(blockName == "jigsaw")
                 {
                     var transformData = block.Nbt["final_state"].ToString().Split('[');
@@ -38,11 +49,10 @@ namespace NbtToBlueprint.Blueprints
                         }
                     }
 
-                    var spriteName = GetSpriteName(paletteData);
-                    paletteItem = palette.Find(m => m.SpriteName == spriteName);
-                    if(paletteItem == null)
+                    paletteItem = GetPaletteItem(palette, paletteData);
+                    var matchingItem = paletteItem = palette.Find(m => m.SpriteName == paletteItem.SpriteName);
+                    if(matchingItem == null)
                     {
-                        paletteItem = GetPaletteItem(palette, paletteData);
                         palette.Add(paletteItem);
                     }
                 }
@@ -143,7 +153,7 @@ namespace NbtToBlueprint.Blueprints
             foreach (var item in itemCounts)
             {
                 blueprint.AppendLine("|-");
-                var formattedName = System.Text.RegularExpressions.Regex.Replace(item.Key, "(^|-)([a-z])",
+                var formattedName = Regex.Replace(item.Key, "(^|-)([a-z])",
                     s => {
                         var result = "";
                         if(s.Groups[1].Value == "-")
@@ -207,24 +217,77 @@ namespace NbtToBlueprint.Blueprints
         private PaletteItem GetPaletteItem(List<PaletteItem> palette, StructureDataRawPalette item)
         {
             var name = CleanSpriteName(item.Name);
-            if (name == "air" || name == "structure-void")
+            var dataItem = BlockData.Blocks.FirstOrDefault(i => Regex.IsMatch(name, i.Name)) ?? new BlockDataItem();
+            if (dataItem.Ignore)
             {
                 return new PaletteItem() { BlockName = "", SpriteName = "", BlueprintValue = default(char), MaterialCount = 0 };
             }
 
-            var validChar = FindPaletteChar(palette, name.ToUpperInvariant());
+            char validChar = default(char);
 
-            if(validChar == default(char))
+            if (!dataItem.HideBlueprint)
             {
-                validChar = FindPaletteChar(palette, name);
+                validChar = FindPaletteChar(palette, name.ToUpperInvariant());
+
+                if (validChar == default(char))
+                {
+                    validChar = FindPaletteChar(palette, name);
+                }
+
+                if (validChar == default(char))
+                {
+                    validChar = FindPaletteChar(palette, "!@#$%^&*()-_+<>");
+                }
+
+                if (validChar == default(char))
+                {
+                    throw new Exception($"Could not find valid palette char for name {name}");
+                }
             }
 
-            if(validChar == default(char))
+            var paletteItem = new PaletteItem()
             {
-                validChar = FindPaletteChar(palette, "!@#$%^&*()-_+<>");
+                BlockName = name,
+                SpriteName = name,
+                BlueprintValue = validChar,
+                MaterialCount = 1
+            };
+
+            foreach (var variant in dataItem.Variants)
+            {
+                var match = true;
+                foreach (var prop in variant.Props)
+                {
+                    var propValue = "";
+                    if(item.Properties.ContainsKey(prop.Key))
+                    {
+                        propValue = item.Properties[prop.Key];
+                    }
+                    if(!Regex.IsMatch(propValue, prop.Value))
+                    {
+                        match = false;
+                    }
+                }
+                if (match)
+                {
+                    if(variant.MaterialCount.HasValue)
+                    {
+                        paletteItem.MaterialCount = variant.MaterialCount.Value;
+                    }
+
+                    if(!string.IsNullOrWhiteSpace(variant.BlockName))
+                    {
+                        paletteItem.BlockName = variant.BlockName.Replace("%name", paletteItem.BlockName);
+                    }
+
+                    if(!string.IsNullOrWhiteSpace(variant.SpriteName))
+                    {
+                        paletteItem.SpriteName = variant.SpriteName.Replace("%name", paletteItem.SpriteName);
+                    }
+                }
             }
 
-            return new PaletteItem() { BlockName = GetBlockName(item), SpriteName = GetSpriteName(item), BlueprintValue = validChar, MaterialCount = GetMaterialCount(item) };
+            return paletteItem;
         }
 
         private char FindPaletteChar(List<PaletteItem> palette, string name)
@@ -243,119 +306,6 @@ namespace NbtToBlueprint.Blueprints
             return default(char);
         }
 
-        private string GetBlockName(StructureDataRawPalette paletteData)
-        {
-            var cleanName = CleanSpriteName(paletteData.Name);
-
-            if(cleanName == "wall-torch")
-            {
-                return "torch";
-            }
-
-            return cleanName;
-        }
-
-        private string GetSpriteName(StructureDataRawPalette paletteData)
-        {
-            var cleanName = CleanSpriteName(paletteData.Name);
-
-            if(cleanName.EndsWith("-log") && (!paletteData.Properties.ContainsKey("axis") ||  paletteData.Properties["axis"] == "y"))
-            {
-                return cleanName + "-top";
-            }
-
-            if (cleanName.EndsWith("-door"))
-            {
-                if (paletteData.Properties["half"] == "lower")
-                {
-                    return cleanName + "-bottom";
-                }
-                if (paletteData.Properties["half"] == "upper")
-                {
-                    return cleanName + "-top";
-                }
-            }
-
-            if (cleanName.EndsWith("-stairs"))
-            {
-                if(paletteData.Properties.ContainsKey("half") && paletteData.Properties["half"] == "top")
-                {
-                    return cleanName + "-rot-180";
-                }
-            }
-
-            if(cleanName.EndsWith("-bed"))
-            {
-                var part = paletteData.Properties["part"];
-                var facing = paletteData.Properties["facing"];
-
-                if(facing == "north" || facing == "south")
-                {
-                    cleanName += "-side";
-                }
-                else
-                {
-                    cleanName += "-top";
-                }
-
-                cleanName += "-" + part;
-
-                if(facing == "east")
-                {
-                    cleanName += "-rot-90";
-                }
-                else if(facing == "north")
-                {
-                    cleanName += "-rot-180";
-                }
-                else if(facing == "west")
-                {
-                    cleanName += "-rot-270";
-                }
-            }
-
-            if(cleanName == "wall-torch")
-            {
-                switch (paletteData.Properties["facing"])
-                {
-                    case "north":
-                        return cleanName + "-rot-90";
-                    case "south":
-                        return cleanName + "-rot-270";
-                    case "west":
-                        return cleanName + "-rot-180";
-                }
-            }
-
-            if(cleanName == "chest")
-            {
-                switch (paletteData.Properties["facing"])
-                {
-                    case "north":
-                        return cleanName + "-rot-270";
-                    case "south":
-                        return cleanName + "-rot-90";
-                    case "east":
-                        return cleanName + "-rot-180";
-                }
-            }
-
-            if(cleanName == "glass-pane")
-            {
-                if (paletteData.Properties["north"] == "true" && paletteData.Properties["south"] == "true")
-                {
-                    return "glass-pane-rot90";
-                }
-            }
-
-            if(cleanName == "grass-path" || cleanName == "grass-block" || cleanName == "water")
-            {
-                return cleanName + "-top";
-            }
-
-            return cleanName;
-        }
-
         private string CleanSpriteName(string name)
         {
             if(name.StartsWith("minecraft:")) {
@@ -363,28 +313,6 @@ namespace NbtToBlueprint.Blueprints
             }
 
             return name.ToLowerInvariant().Replace("_", "-");
-        }
-
-        private int GetMaterialCount(StructureDataRawPalette paletteData)
-        {
-            var cleanName = CleanSpriteName(paletteData.Name);
-
-            if(cleanName.EndsWith("-bed"))
-            {
-                return paletteData.Properties["part"] == "head" ? 1 : 0;
-            }
-
-            if(cleanName.EndsWith("-door") || cleanName == "tall-grass")
-            {
-                return paletteData.Properties["half"] == "lower" ? 1 : 0;
-            }
-
-            if(cleanName.EndsWith("-slab"))
-            {
-                return paletteData.Properties["type"] == "double" ? 2 : 1;
-            }
-
-            return 1;
         }
     }
 }

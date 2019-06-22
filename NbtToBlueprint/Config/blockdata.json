@@ -1,0 +1,189 @@
+﻿{
+	"blocks": [
+		{
+			"name": "(^air$|^structure-void$)",
+			"ignore": true			
+		},
+		{
+			"name": "^jigsaw$",
+			"hideBlueprint": true
+		},
+		{
+			"name": "^wall-torch$",
+			"variants": [
+				{
+					"blockName": "torch"
+				},
+				{
+					"props": {
+						"facing": "north"
+					},
+					"spriteName": "%name-rot-90"
+				},
+				{
+					"props": {
+						"facing": "west"
+					},
+					"spriteName": "%name-rot-180"
+				},
+				{
+					"props": {
+						"facing": "south"
+					},
+					"spriteName": "%name-rot-270"
+				}
+			]
+		},
+		{
+			"name": "-log$",
+			"variants": [
+				{
+					"axis": "(y|^$)",
+					"spriteName": "%name-top"
+				}
+			]
+		},
+		{
+			"name": "-door$",
+			"variants": [
+				{
+					"props": {
+						"half": "lower"
+					},
+					"spriteName": "%name-bottom"
+				},
+				{
+					"props": {
+						"half": "upper"
+					},
+					"spriteName": "%name-top",
+					"materialCount": 0
+				}
+			]
+		},
+		{
+			"name": "-stairs$",
+			"variants": [
+				{
+					"props": {
+						"half": "top"
+					},
+					"spriteName": "%name-rot-180"
+				}
+			]
+		},
+		{
+			"name": "-bed$",
+			"variants": [
+				{
+					"props": {
+						"facing": "(north|south)"
+					},
+					"spriteName": "%name-side"
+				},
+				{
+					"props": {
+						"facing": "(east|west)"
+					},
+					"spriteName": "%name-top"
+				},
+				{
+					"props": {
+						"part": "head"
+					},
+					"spriteName": "%name-head"
+				},
+				{
+					"props": {
+						"part": "foot"
+					},
+					"spriteName": "%name-foot",
+					"materialCount": 0
+				},
+				{
+					"props": {
+						"facing": "east"
+					},
+					"spriteName": "%name-rot-90"
+				},
+				{
+					"props": {
+						"facing": "north"
+					},
+					"spriteName": "%name-rot-180"
+				},
+				{
+					"props": {
+						"facing": "west"
+					},
+					"spriteName": "%name-rot-270"
+				}
+			]
+		},
+		{
+			"name": "^chest$",
+			"variants": [
+				{
+					"props": {
+						"facing": "north"
+					},
+					"spriteName": "%name-rot-270"
+				},
+				{
+					"props": {
+						"facing": "east"
+					},
+					"spriteName": "%name-rot-180"
+				},
+				{
+					"props": {
+						"facing": "west"
+					},
+					"spriteName": "%name-rot-90"
+				}
+			]
+		},
+		{
+			"name": "^glass-pane$",
+			"variants": [
+				{
+					"props": {
+						"north": "true",
+						"south": "true"
+					},
+					"spriteName": "%name-rot-90"				
+				}
+			]
+		},
+		{
+			"name": "(^grass-path$|^grass-block$|^water$)",
+			"variants": [
+				{
+					"spriteName": "%name-top"
+				}
+			]
+		},
+		{
+			"name": "-slab$",
+			"variants": [
+				{
+					"props": {
+						"type": "double"
+					},
+					"materialCount": 2				
+				}
+			]
+		},
+		{
+			"name": "^tall-grass$",
+			"variants": [
+				{
+					"props": {
+						"half": "upper"
+					},
+					"materialCount": 0
+				}
+			]
+		}
+	]
+}
