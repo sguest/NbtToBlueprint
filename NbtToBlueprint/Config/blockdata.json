@@ -1,7 +1,7 @@
 ﻿{
 	"blocks": [
 		{
-			"name": "(^air$|^structure-void$)",
+			"name": "(^(cave-)?air$|^structure-void$)",
 			"ignore": true			
 		},
 		{
