@@ -1,18 +1,18 @@
 ﻿{
 	"blocks": [
 		{
-			"name": "(^(cave-)?air$|^structure-void$)",
+			"name": "(^(Cave )?Air$|^Structure Void$)",
 			"ignore": true			
 		},
 		{
-			"name": "^jigsaw$",
+			"name": "^Jigsaw$",
 			"hideBlueprint": true
 		},
 		{
-			"name": "^wall-torch$",
+			"name": "^Wall Torch$",
 			"variants": [
 				{
-					"blockName": "torch"
+					"blockName": "Torch"
 				},
 				{
 					"props": {
@@ -35,34 +35,34 @@
 			]
 		},
 		{
-			"name": "-log$",
+			"name": " Log$",
 			"variants": [
 				{
 					"axis": "(y|^$)",
-					"spriteName": "%name-top"
+					"spriteName": "%name+top"
 				}
 			]
 		},
 		{
-			"name": "-door$",
+			"name": " Door$",
 			"variants": [
 				{
 					"props": {
 						"half": "lower"
 					},
-					"spriteName": "%name-bottom"
+					"spriteName": "%name+bottom"
 				},
 				{
 					"props": {
 						"half": "upper"
 					},
-					"spriteName": "%name-top",
+					"spriteName": "%name+top",
 					"materialCount": 0
 				}
 			]
 		},
 		{
-			"name": "-stairs$",
+			"name": " Stairs$",
 			"variants": [
 				{
 					"props": {
@@ -73,31 +73,31 @@
 			]
 		},
 		{
-			"name": "-bed$",
+			"name": " Bed$",
 			"variants": [
 				{
 					"props": {
 						"facing": "(north|south)"
 					},
-					"spriteName": "%name-side"
+					"spriteName": "%name+side"
 				},
 				{
 					"props": {
 						"facing": "(east|west)"
 					},
-					"spriteName": "%name-top"
+					"spriteName": "%name+top"
 				},
 				{
 					"props": {
 						"part": "head"
 					},
-					"spriteName": "%name-head"
+					"spriteName": "%name+head"
 				},
 				{
 					"props": {
 						"part": "foot"
 					},
-					"spriteName": "%name-foot",
+					"spriteName": "%name+foot",
 					"materialCount": 0
 				},
 				{
@@ -121,7 +121,7 @@
 			]
 		},
 		{
-			"name": "^chest$",
+			"name": "^Chest$",
 			"variants": [
 				{
 					"props": {
@@ -144,7 +144,7 @@
 			]
 		},
 		{
-			"name": "glass-pane$",
+			"name": " Glass Pane$",
 			"variants": [
 				{
 					"props": {
@@ -156,15 +156,15 @@
 			]
 		},
 		{
-			"name": "(^grass-path$|^grass-block$|^water$)",
+			"name": "(^Grass Path$|^Grass Block$|^Water$)",
 			"variants": [
 				{
-					"spriteName": "%name-top"
+					"spriteName": "%name+top"
 				}
 			]
 		},
 		{
-			"name": "-slab$",
+			"name": " Slab$",
 			"variants": [
 				{
 					"props": {
@@ -175,7 +175,7 @@
 			]
 		},
 		{
-			"name": "^tall-grass$",
+			"name": "^Tall Grass$",
 			"variants": [
 				{
 					"props": {

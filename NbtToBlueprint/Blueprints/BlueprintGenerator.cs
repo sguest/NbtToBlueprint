@@ -37,7 +37,7 @@ namespace NbtToBlueprint.Blueprints
             {
                 var paletteItem = Palette[block.State];
                 var blockName = paletteItem.BlockName;
-                if(blockName == "jigsaw")
+                if(blockName == "Jigsaw")
                 {
                     paletteItem = TransformJigsaw(block);
                 }
@@ -66,7 +66,7 @@ namespace NbtToBlueprint.Blueprints
         {
             var blueprint = new StringBuilder();
 
-            blueprint.AppendLine("{{layered blueprint|name=").Append(name).Append("|default=Layer 1");
+            blueprint.AppendLine("{{layered blueprint|name=").Append(name).AppendLine("|default=Layer 1");
 
             foreach (var item in Palette)
             {
@@ -151,18 +151,7 @@ namespace NbtToBlueprint.Blueprints
             foreach (var item in itemCounts)
             {
                 builder.AppendLine("|-");
-                var formattedName = Regex.Replace(item.Key, "(^|-)([a-z])",
-                    s => {
-                        var result = "";
-                        if (s.Groups[1].Value == "-")
-                        {
-                            result += " ";
-                        }
-                        result += s.Groups[2].Value.ToUpperInvariant();
-                        return result;
-                    });
-
-                builder.Append("| {{BlockSprite|").Append(item.Key).Append("|link=").Append(formattedName).Append("|text=").Append(formattedName).Append("}}     ");
+                builder.Append("| {{BlockSprite|").Append(item.Key).Append("|link=").Append(item.Key).Append("|text=").Append(item.Key).Append("}}     ");
 
                 for (var y = 0; y < numLayers; y++)
                 {
@@ -251,7 +240,7 @@ namespace NbtToBlueprint.Blueprints
 
             if (!dataItem.HideBlueprint)
             {
-                var options = $"{name.ToUpperInvariant().Replace("-", "")}{name.Replace("-", "")}!@#$%^&*()-_+<>";
+                var options = $"{name.ToUpperInvariant().Replace(" ", "")}{name.Replace(" ", "")}!@#$%^&*()-_+<>";
                 blueprintChar = FindPaletteChar(options);
             }
 
@@ -322,7 +311,10 @@ namespace NbtToBlueprint.Blueprints
                 name = name.Substring(10);
             }
 
-            return name.ToLowerInvariant().Replace("_", "-");
+            name = name.ToLowerInvariant().Replace("_", " ");
+
+            return Regex.Replace(name, "(^| )([a-z])",
+                    s => s.Value.ToUpperInvariant());
         }
     }
 }
