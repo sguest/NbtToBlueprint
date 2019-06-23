@@ -144,7 +144,7 @@
 			]
 		},
 		{
-			"name": "^glass-pane$",
+			"name": "glass-pane$",
 			"variants": [
 				{
 					"props": {
