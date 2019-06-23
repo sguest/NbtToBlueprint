@@ -70,7 +70,7 @@ namespace NbtToBlueprint.Blueprints
 
             foreach (var item in Palette)
             {
-                if (item.BlueprintValue != default(char))
+                if (item.BlueprintValue != default(char) && !item.IsDuplicate)
                 {
                     blueprint.AppendLine($"|{item.BlueprintValue}={item.SpriteName}");
                 }
@@ -223,7 +223,16 @@ namespace NbtToBlueprint.Blueprints
 
             foreach (var item in data.Palette)
             {
-                Palette.Add(GetPaletteItem(item));
+                var paletteItem = GetPaletteItem(item);
+
+                var matchingItem = Palette.Find(m => m.SpriteName == paletteItem.SpriteName);
+                if(matchingItem != null)
+                {
+                    paletteItem.IsDuplicate = true;
+                    paletteItem.BlueprintValue = matchingItem.BlueprintValue;
+                }
+
+                Palette.Add(paletteItem);
             }
         }
 

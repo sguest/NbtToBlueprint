@@ -6,5 +6,6 @@
         public string SpriteName { get; set; }
         public char BlueprintValue { get; set; }
         public int MaterialCount { get; set; }
+        public bool IsDuplicate { get; set; }
     }
 }
