@@ -184,6 +184,59 @@
 					"materialCount": 0
 				}
 			]
+		},
+		{
+			"name": "^Oak Wall Sign$",
+			"variants": [
+				{
+					"blockName": "Oak Sign"
+				}
+			]
+		},
+		{
+			"name": "^Spruce Wall Sign$",
+			"variants": [
+				{
+					"blockName": "Spruce Sign"
+				}
+			]
 		}
+,
+		{
+			"name": "^Birch Wall Sign$",
+			"variants": [
+				{
+					"blockName": "Birch Sign"
+				}
+			]
+		}
+,
+		{
+			"name": "^Dark Oak Wall Sign$",
+			"variants": [
+				{
+					"blockName": "Dark Oak Sign"
+				}
+			]
+		}
+,
+		{
+			"name": "^Birch Wall Sign$",
+			"variants": [
+				{
+					"blockName": "Birch Sign"
+				}
+			]
+		}
+,
+		{
+			"name": "^Jungle Wall Sign$",
+			"variants": [
+				{
+					"blockName": "Jungle Sign"
+				}
+			]
+		}
+
 	]
 }
