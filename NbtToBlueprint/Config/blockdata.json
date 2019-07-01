@@ -38,7 +38,9 @@
 			"name": " Log$",
 			"variants": [
 				{
-					"axis": "(y|^$)",
+					"props": {
+						"axis": "(y|^$)"
+					},
 					"spriteName": "%name+top"
 				}
 			]
