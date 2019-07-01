@@ -238,7 +238,29 @@
 					"blockName": "Jungle Sign"
 				}
 			]
+		},
+		{
+			"name": " Glazed Terracotta$",
+			"variants": [
+				{
+					"props": {
+						"facing": "south"
+					},
+					"spriteName": "%name-rot-90"
+				},
+				{
+					"props": {
+						"facing": "east"
+					},
+					"spriteName": "%name-rot-180"
+				},
+				{
+					"props": {
+						"facing": "north"
+					},
+					"spriteName": "%name-rot-270"
+				}
+			]
 		}
-
 	]
 }
