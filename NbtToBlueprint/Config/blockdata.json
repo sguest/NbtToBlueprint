@@ -42,6 +42,12 @@
 						"axis": "(y|^$)"
 					},
 					"spriteName": "%name+top"
+				},
+				{
+					"props": {
+						"axis": "z"
+					},
+					"spriteName": "%name-rot-90"
 				}
 			]
 		},
