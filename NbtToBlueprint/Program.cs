@@ -1,5 +1,5 @@
-﻿using NbtToBlueprint.Blueprints;
-using NbtToBlueprint.Nbt;
+﻿using NbtLib;
+using NbtToBlueprint.Blueprints;
 using NbtToBlueprint.StructureData;
 
 namespace NbtToBlueprint
@@ -21,12 +21,11 @@ namespace NbtToBlueprint
                         return result;
                     });
 
-            var deserializer = new NbtDeserializer();
             var generator = new BlueprintGenerator();
             StructureDataRaw structureData;
 
             using (var inputStream = System.IO.File.OpenRead(inFile)) {
-                structureData = deserializer.DeserializeObject<StructureDataRaw>(inputStream);
+                structureData = NbtConvert.DeserializeObject<StructureDataRaw>(inputStream);
             }
 
             var blueprint = generator.GenerateBlueprint(structureData, name);
